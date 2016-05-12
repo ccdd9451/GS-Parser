@@ -22,7 +22,7 @@ class CommObj(object):
 
     @property
     def source(self):
-        if self.cached():
+        if self.cached:
             return self._source
         logging.info('Not Cached!')
         return None
@@ -62,7 +62,7 @@ class SearchObj(CommObj):
         return self._pages[0].source
 
     @source.setter
-    def source(self, source)
+    def source(self, source):
         self._pages[0].source = source
 
     @property

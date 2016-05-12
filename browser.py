@@ -4,22 +4,20 @@
 import logging
 import time
 import random
-import asyncio
 import os
 
 import requests
 from http.cookiejar import LWPCookieJar
 
-from scholar_queue import SQueue
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
 PYTHONASYNCIODEBUG = True
 ENABLE_BACKGROUND_WORK = False
 
 MAX_RETRIES = 1
 WAIT_AFTER_INCONNECTED = False
-RESET_COOKIES = False
+RESET_COOKIES = True
 CACHE_HTML_FILES = True
 
 ENV_HEADER = {
@@ -62,10 +60,10 @@ class Browser(object):
 
     def __init__(self, proxy=None, actiontime=15, webdriver='requests'):
         logging.debug('Browser init begin')
-        
 
         # Init Web Datas
         self.s = requests.session()
+        os.makedirs(os.path.split(COOKIE_FILE)[0], exist_ok=True)
         self.s.cookies = LWPCookieJar(COOKIE_FILE)
         self.header = {}
         self.header.update(ENV_HEADER)
@@ -78,7 +76,7 @@ class Browser(object):
         if webdriver != 'requests': # Only requests provided
             logging.error('Webdriver option {} not provided, use default\
                           driver requests instead'.format(webdriver))
-        
+
         # Init other datas
         self._queue = None  # Depercated
         self._last_time = time.time()
@@ -95,7 +93,7 @@ class Browser(object):
     def _cookie_init(self):
         # Initialize Google Scholar, making it more human-like
         logging.debug('Cookie Initiating')
-        
+
         while True:
             try:
                 self.debug_welcome = self._get_url(URL_SCHOLAR)
@@ -112,20 +110,22 @@ class Browser(object):
                 else:
                     raise
 
-    def checktime(self, func):
-        def warp(*args, **kargs):
+    def checktime(func):
+        def warp(self, *args, **kargs):
             now_time = time.time()
             interval_time = now_time - self._last_time
             delaytime = self.delaytime_generator()
             if interval_time < delaytime:
                 time.sleep(interval_time)
-            return func(*args, **kargs)
+            return func(self, *args, **kargs)
         return warp
 
-    @self.checktime
-    def _get_url(self, url, param={}, header={}):
-        params = dict(self.param).update(param)
-        headers = dict(self.header).update(header)
+    @checktime
+    def _get_url(self, url, param=None, header=None):
+        params = dict(self.param)
+        params.update(param or {})
+        headers = dict(self.header)
+        headers.update(header or {})
 
         try:
             logging.debug('Start connecting with \n\t url: %s \n\t params: %s' %
@@ -149,6 +149,7 @@ class Browser(object):
 
     def _debug_cachefile(self, req):
         if CACHE_HTML_FILES:
+            os.makedirs('temp', exist_ok=True)
             w_address = r'temp/' + req.url.split('/', 3)[3].replace('/', '-') + r'_store.html'
             logging.info('html file stored at %s' % w_address)
             with open(w_address, 'wb') as f:
@@ -160,12 +161,12 @@ class Browser(object):
         return delaytime
 
     def req_item(self, req_obj):
-        content = self._get_url(URL_SEARCHING, params=req_obj.params)
+        content = self._get_url(URL_SEARCHING, param=req_obj.params)
         req_obj.source = content
-    
+
     '''
         Depercated functions
-        
+
     def add_queue(self, queue):
         assert isinstance(queue, SQueue)
         self._queue = queue
@@ -186,5 +187,5 @@ class Browser(object):
     def close(self):
         pass
     '''
-        
-    
+
+

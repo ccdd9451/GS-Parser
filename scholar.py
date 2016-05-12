@@ -3,6 +3,7 @@
 
 from browser import Browser
 from scholar_queue import SQueue
+from s_parser import Parsing
 
 
 proxies = {'http': 'http://127.0.0.1:8087',
@@ -10,10 +11,11 @@ proxies = {'http': 'http://127.0.0.1:8087',
 
 driver = Browser(proxy=proxies)
 queue = SQueue()
-driver.add_queue(queue)
 
 pdx = queue.search_key('some example')
-driver.startcache()
+driver.req_item(pdx)
+
+pdx_parsed = Parsing(pdx)
 
 
 #cited = queue.cited_by_id('12345678')
