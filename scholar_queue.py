@@ -24,15 +24,17 @@ class CommObj(object):
     def source(self):
         if self.cached:
             return self._source
-        logging.info('Not Cached!')
+        logging.warning('Not Cached!')
         return None
 
     @source.setter
     def source(self, source):
-        self.checkvali(source)
+        print('setting source: ', source)
+        if not self.checkvali(source):
+            #logging.warning('Not a vaild GS page: {}'.format(source))
+            return
         self._source = source
-        if not source:
-            self._if_cached = True
+        self._if_cached = True
 
     @property
     def params(self):
@@ -40,10 +42,7 @@ class CommObj(object):
 
     def checkvali(self, source):
         # TODO: check if page is broken
-        if True:
-            pass
-        else:
-            raise ValueError('Not a useful page!')
+        return True
 
 
 class PageObj(CommObj):

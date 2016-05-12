@@ -17,7 +17,7 @@ ENABLE_BACKGROUND_WORK = False
 
 MAX_RETRIES = 1
 WAIT_AFTER_INCONNECTED = False
-RESET_COOKIES = True
+RESET_COOKIES = False
 CACHE_HTML_FILES = True
 
 ENV_HEADER = {
@@ -87,8 +87,10 @@ class Browser(object):
         if RESET_COOKIES or not os.path.exists(COOKIE_FILE):
             self._cookie_init()
         else:
+            self.param.update({'num': '20'})
             logging.info('Cookie exists, Reuse the last cookie file.')
             self.s.cookies.load()
+
 
     def _cookie_init(self):
         # Initialize Google Scholar, making it more human-like
@@ -99,6 +101,7 @@ class Browser(object):
                 self.debug_welcome = self._get_url(URL_SCHOLAR)
                 self.debug_settings_content = self._get_url(**SCH_SETTINGS)  # get cookies and set options
                 self.debug_settings_done = self._get_url(**SCH_SETTINGS_REQUIREMENT)
+                self.param.update({'num': '20'})
                 break
             except ConnectionError as e:
                 errcode, msg = e.args
@@ -162,6 +165,7 @@ class Browser(object):
 
     def req_item(self, req_obj):
         content = self._get_url(URL_SEARCHING, param=req_obj.params)
+        print('the content: ', content)
         req_obj.source = content
 
     '''
