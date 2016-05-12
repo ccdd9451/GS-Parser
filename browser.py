@@ -32,6 +32,7 @@ ENV_HEADER = {
 
 SCH_SETTINGS = {'url': r'https://scholar.google.com/scholar_settings',
                 'param': None}
+
 SCH_SETTINGS_REQUIREMENT = {'url': r'https://scholar.google.com/schhp',
                             'param': {'num': '20'}}
 
@@ -40,7 +41,7 @@ URL_SEARCHING = r'https://scholar.google.com/scholar'
 
 COOKIE_FILE = r'cache/cookies'
 
-debug_item = None
+debug_item = None  # Use for debug in Python shell
 
 class ProcessFailedError(Exception):
     pass
@@ -61,12 +62,7 @@ class Browser(object):
 
     def __init__(self, proxy=None, actiontime=15, webdriver='requests'):
         logging.debug('Browser init begin')
-        if webdriver != 'requests':
-            logging.error('Webdriver option {} not provided, use default\
-                            driver requests instead'.format(webdriver))
-
-        self._get_failed_time = 0
-        self.actiontime = actiontime
+        
 
         # Init Web Datas
         self.s = requests.session()
@@ -77,18 +73,17 @@ class Browser(object):
             'as_vis': '1',  # as_vis controls whether a citation is included
             'hl': 'en',
             'as_sdt': '1,5'}  # as_sdt controls patent including or maybe others I haven't figured.
-
-        # Proxy setting and an easy checking
-        self.proxies = None
-        if proxy:
-            if isinstance(proxy, dict):
-                self.proxies = proxy
-            else:
-                raise ValueError('Proxy format Error!')
-
+        self.proxies = proxy if proxy else None
+        assert isinstance(proxy, dict)
+        if webdriver != 'requests': # Only requests provided
+            logging.error('Webdriver option {} not provided, use default\
+                          driver requests instead'.format(webdriver))
+        
         # Init other datas
         self._queue = None  # Depercated
         self._last_time = time.time()
+        self._get_failed_time = 0
+        self.actiontime = actiontime
 
         # Cookie check and regen
         if RESET_COOKIES or not os.path.exists(COOKIE_FILE):
@@ -99,8 +94,8 @@ class Browser(object):
 
     def _cookie_init(self):
         # Initialize Google Scholar, making it more human-like
-
         logging.debug('Cookie Initiating')
+        
         while True:
             try:
                 self.debug_welcome = self._get_url(URL_SCHOLAR)
@@ -128,14 +123,9 @@ class Browser(object):
         return warp
 
     @self.checktime
-    def _get_url(self, url, param=None, header=None):
-        params = dict(self.param)
-        if param:
-            params.update(param)
-
-        headers = {}.update(self.header)
-        if header:
-            headers.update(header)
+    def _get_url(self, url, param={}, header={}):
+        params = dict(self.param).update(param)
+        headers = dict(self.header).update(header)
 
         try:
             logging.debug('Start connecting with \n\t url: %s \n\t params: %s' %
@@ -145,15 +135,9 @@ class Browser(object):
                              headers=headers,
                              proxies=self.proxies,
                              verify=False)  # TODO: cert verifing
-            global debug_item
-            debug_item = req
             self._get_failed_time = 0
             self.s.cookies.save()
-            if CACHE_HTML_FILES:
-                w_address = r'temp/' + req.url.split('/', 3)[3].replace('/', '-') + r'_store.html'
-                logging.info('html file stored at %s' % w_address)
-                with open(w_address, 'wb') as f:
-                    f.write(req.content)
+            self._debug_cachefile(req)
             return req.content
 
         except ConnectionError as e:
@@ -163,23 +147,28 @@ class Browser(object):
                 raise ConnectionError(1, 'Max retries exceeded')
             raise ConnectionError(0, 'Retrieve data failed')
 
-    def add_queue(self, queue):
-        assert isinstance(queue, SQueue)
-        self._queue = queue
+    def _debug_cachefile(self, req):
+        if CACHE_HTML_FILES:
+            w_address = r'temp/' + req.url.split('/', 3)[3].replace('/', '-') + r'_store.html'
+            logging.info('html file stored at %s' % w_address)
+            with open(w_address, 'wb') as f:
+                f.write(req.content)
 
     def delaytime_generator(self):
         delaytime = random.randint(5, self.actiontime)
         logging.debug('Wait time %ds before next move' % delaytime)
         return delaytime
-    
-    
 
     def req_item(self, req_obj):
         content = self._get_url(URL_SEARCHING, params=req_obj.params)
         req_obj.source = content
     
     '''
-        De
+        Depercated functions
+        
+    def add_queue(self, queue):
+        assert isinstance(queue, SQueue)
+        self._queue = queue
 
     def startcache(self, loop=None, executor=None):
         self._pausetask = False
@@ -196,3 +185,6 @@ class Browser(object):
 
     def close(self):
         pass
+    '''
+        
+    

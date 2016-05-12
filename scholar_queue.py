@@ -51,10 +51,23 @@ class PageObj(CommObj):
         self.pagenum = pagenum
         super(PageObj, self).__init__(*awrgs)
 
+
 class SearchObj(CommObj):
     def __init__(self, *awrgs):
         super(SearchObj, self).__init__(*awrgs)
         self._pages = [PageObj(0, *awrgs)]
+
+    @property
+    def source(self):
+        return self._pages[0].source
+
+    @source.setter
+    def source(self, source)
+        self._pages[0].source = source
+
+    @property
+    def cached(self):
+        return self._pages[0]._if_cached
 
 
 
@@ -117,5 +130,4 @@ class Controller(object):
        process controller
     '''
 
-def func1(self):  # TODO
-    pass
+
