@@ -29,7 +29,6 @@ class CommObj(object):
 
     @source.setter
     def source(self, source):
-        print('setting source: ', source)
         if not self.checkvali(source):
             #logging.warning('Not a vaild GS page: {}'.format(source))
             return

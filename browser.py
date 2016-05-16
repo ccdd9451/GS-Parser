@@ -32,7 +32,7 @@ SCH_SETTINGS = {'url': r'https://scholar.google.com/scholar_settings',
                 'param': None}
 
 SCH_SETTINGS_REQUIREMENT = {'url': r'https://scholar.google.com/schhp',
-                            'param': {'num': '20'}}
+                            'param': {'num': '20', 'sciifh': '1'}}
 
 URL_SCHOLAR = r'https://scholar.google.com/ncr'
 URL_SEARCHING = r'https://scholar.google.com/scholar'
@@ -165,7 +165,6 @@ class Browser(object):
 
     def req_item(self, req_obj):
         content = self._get_url(URL_SEARCHING, param=req_obj.params)
-        print('the content: ', content)
         req_obj.source = content
 
     '''
