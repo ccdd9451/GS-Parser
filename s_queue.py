@@ -3,6 +3,7 @@
 
 from bs4 import BeautifulSoup
 import logging, re, pickle
+from pandas import Series, DataFrame
 
 RE_AMOUNT_BYTES = b'[Aa]bout ([0-9|,]+) results'
 
@@ -160,7 +161,10 @@ class SearchObj(CommObj):
         super(SearchObj, self).__setstate__(d)
 
     def vizd(self):
-        return {self._qkey: [str(x['id']) for x in self.results]}
+        return Series(True, index=self.results['id'], btype=bool)
+
+    def vizd2(self):  # Depercated
+        return {self._qkey: {str(x['id']): None for x in self.results}}
 
     @property
     def source(self):
