@@ -8,6 +8,6 @@ pdx = SearchObj('q', 'aaa')
 with open(r'temp/example.html', 'rb') as f:
     pdx.source = f.read()
 
-Parsing(pdx)
+p = Parsing(pdx)
 
 

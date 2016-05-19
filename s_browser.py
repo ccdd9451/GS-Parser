@@ -5,6 +5,7 @@ import logging
 import time
 import random
 import os
+from collections import Iterable
 
 import requests
 from http.cookiejar import LWPCookieJar
@@ -39,7 +40,6 @@ URL_SEARCHING = r'https://scholar.google.com/scholar'
 
 COOKIE_FILE = r'cache/cookies'
 
-debug_item = None  # Use for debug in Python shell
 
 class ProcessFailedError(Exception):
     pass
@@ -115,6 +115,7 @@ class Browser(object):
 
     def checktime(func):
         def warp(self, *args, **kargs):
+            print('times begin line:118')
             now_time = time.time()
             interval_time = now_time - self._last_time
             delaytime = self.delaytime_generator()
@@ -141,6 +142,7 @@ class Browser(object):
             self._get_failed_time = 0
             self.s.cookies.save()
             self._debug_cachefile(req)
+            print('file write success:line 144')
             return req.content
 
         except ConnectionError as e:
@@ -164,8 +166,12 @@ class Browser(object):
         return delaytime
 
     def req_item(self, req_obj):
-        content = self._get_url(URL_SEARCHING, param=req_obj.params)
-        req_obj.source = content
+        if isinstance(req_obj, Iterable):
+            for r in req_obj:
+                self.req_item(r)
+        else:
+            content = self._get_url(URL_SEARCHING, param=req_obj.params)
+            req_obj.source = content
 
     '''
         Depercated functions
