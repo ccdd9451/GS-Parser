@@ -1,8 +1,7 @@
 # !/usr/bin/env python
 #  encoding: utf-8
 
-from s_browser import Browser
-from s_queue import SearchObj
+from s_browser import Browser, Search
 
 
 proxies = {'http': 'http://127.0.0.1:8087',
@@ -10,7 +9,7 @@ proxies = {'http': 'http://127.0.0.1:8087',
 
 driver = Browser(proxy=proxies)
 
-pdx = SearchObj.search_with_key('machine learning introduction')
+pdx = Search.cited_by_id(17725825958939227007)
 driver.req_item(pdx)
 driver.req_item(pdx.pages(*range(0, 5)))
 
