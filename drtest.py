@@ -9,7 +9,7 @@ proxies = {'http': 'http://127.0.0.1:8087',
 
 driver = Browser(proxy=proxies)
 
-pdx = Search.cited_by_id(17725825958939227007)
+pdx = Search.search_with_key('some example')
 driver.req_item(pdx)
 driver.req_item(pdx.pages(*range(0, 5)))
 

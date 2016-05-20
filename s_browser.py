@@ -9,6 +9,7 @@ import re
 import pickle
 from bs4 import BeautifulSoup
 from collections import Iterable, defaultdict
+from pygraphviz import AGraph
 
 import requests
 from http.cookiejar import LWPCookieJar
@@ -117,7 +118,6 @@ class Browser(object):
 
     def checktime(func):
         def warp(self, *args, **kargs):
-            print('times begin line:118')
             now_time = time.time()
             interval_time = now_time - self._last_time
             delaytime = self.delaytime_generator()
@@ -144,7 +144,6 @@ class Browser(object):
             self._get_failed_time = 0
             self.s.cookies.save()
             self._debug_cachefile(req)
-            print('file write success:line 144')
             return req.content
 
         except ConnectionError as e:
@@ -172,8 +171,13 @@ class Browser(object):
             for r in req_obj:
                 self.req_item(r)
         else:
+            if req_obj._qtype == 'cite':
+                self.touch(req_obj._qkey)
             content = self._get_url(URL_SEARCHING, param=req_obj.params)
             req_obj.source = content
+
+    def touch(self, id):  # Try to avoid google CAPTCHA
+        self._get_url(URL_SEARCHING, param={'q': id})
 
     '''
         Depercated functions
@@ -238,7 +242,8 @@ class Graph(defaultdict):
     '''
     stored as {target: source(s)} format
     '''
-    def __init__(self, pkg=None):
+    def __init__(self,  pkg=None, filename=None):
+        self.filename = filename
         super(Graph, self).__init__(set)
         if pkg:
             self.builder(pkg)
@@ -254,11 +259,14 @@ class Graph(defaultdict):
 
     @itercheck
     def builder(self, pkg):
-        target, source = pkg
-        if isinstance(source, (str, int)):
-            self[target].add(str(source))
-        elif isinstance(source, set):
-            self[target].update(source)
+        if isinstance(pkg, SearchObj):
+            self.reversed_builder([pkg.all_cites()])
+        else:
+            target, source = pkg
+            if isinstance(source, (str, int)):
+                self[target].add(str(source))
+            elif isinstance(source, set):
+                self[target].update(source)
 
     @itercheck
     def reversed_builder(self, pkg):
@@ -267,17 +275,30 @@ class Graph(defaultdict):
             self[target].add(source)
 
     def select(self, count):
-        return Graph((item, self[item]) for item in self
-                     if len(self[item]) > count)
+        nitem = ((item, self[item]) for item in self
+                 if len(self[item]) > count)
+        print(nitem)
+        if self.filename:
+            filename = self.filename + '_cite_{}'.format(count)
+        else:
+            filename = None
+        print(filename)
+        return Graph(nitem, filename=filename)
 
     def to_tree(self):
         d = defaultdict(dict)
         for (target, source) in self.items():
-            print(target, source)
             for item in source:
-                print('\t', source)
                 d[item].update({target: None})
         return d
+
+    def draw(self):
+        tree = self.to_tree()
+        A = AGraph(tree)
+        if not self.filename:
+            self.filename = input('Please input a filename:')
+        A.draw('temp/{}.jpg'.format(self.filename),
+               format='jpg', prog='fdp')
 
 
 class defaultlist(list):
@@ -307,6 +328,7 @@ class CommObj(object):
         _para, _if_cached, _qtype, _qkey
         _source, results, numsum
     '''
+    _get_failed_time = 0
 
     def __init__(self, querytype, querykey, para=None):
         self._para = para or {}
@@ -314,7 +336,7 @@ class CommObj(object):
         self._source = None
         self._results = list()
         self.numsum = None
-        if querytype in ('q', 'cite'):
+        if querytype in ('q', 'cites'):
             self._qtype = querytype
             self._qkey = querykey
         else:
@@ -357,6 +379,12 @@ class CommObj(object):
 
     def checkvali(self, source):
         self._results, self.numsum = Parsing(source)
+        if not self._results:
+            self._get_failed_time+=1
+            if self._get_failed_time >= MAX_RETRIES:
+                raise ConnectionError(1, 'Max retries exceeded, Google CAPTCHA activated.')
+        else:
+            self._get_failed_time = 0
         return self._results
 
 
@@ -506,7 +534,7 @@ class Search(object):
     @staticmethod
     def cited_by_id(idnum):
         idnum = str(int(idnum))  # To make sure it's an figure id
-        nsearch = SearchObj('cite', idnum)
+        nsearch = SearchObj('cites', idnum)
         return nsearch
 
 #    def cget(self, sobj, deep=2, pages=5):  # TODO
