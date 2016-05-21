@@ -468,50 +468,6 @@ class SearchObj(CommObj):
         return sum((page.results for page in self._pages), [])
 
 
-# depercated
-# class SQueue(object):
-#    '''
-#    SQueue is the main controller of Scholar program. SQueue makes it possible that
-#    users continue ask datas while driver is working in background. This feather
-#    provided a way to use it in a scriptify way.
-#    '''
-#
-#    def __init__(self):
-#        '''
-#        _comm_queue used to store the list of uncomplete queries, every item in it is a
-#        SearchObj or a PageObj which drivers get them before working.
-#        '''
-#
-#        self._search_queue=[]
-#        self._page_queue=[]
-#
-#    def objcheck(func):
-#        def warps(self, obj):
-#            if isinstance(obj, SearchObj):
-#                return func(self, obj, self._search_queue)
-#            elif isinstance(obj, PageObj):
-#                return func(self, obj, self._page_queue)
-#        return warps
-#
-#    @objcheck
-#    def add_queue(self, obj, queue):
-#        queue.append(obj)
-#
-#    @objcheck
-#    def add_queue_at_top(self, obj, queue):
-#        queue.insert(0, obj)
-#
-#    def pop_queue(self):
-#        logging.debug('A obj is asked poping from queue')
-#        if self._search_queue:
-#            return self._search_queue.pop(0)
-#        elif self._page_queue:
-#            return self._page_queue.pop(0)
-#        else:
-#            logging.info('Stack is empty!')
-#            return None
-#
-#
 
 ################# Control Part ################
 
