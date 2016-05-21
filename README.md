@@ -4,6 +4,14 @@ A practicing project of google scholar parser.
 
 ## Code and Examples
 
+To import this module, use:
+    
+    >>> import s_browser
+    
+or
+
+    >>> from s_browser import *
+    
 ### Parsing a keyword:
 
     >>> proxies = None
