@@ -21,7 +21,7 @@ or
     >>> driver.req_item(emp.pages(*range(0, 5)))
     >>> emp.close()
 
-When close() was called, crawled data would be stored at 'temp/{keyword}.sdb' file. You can rescue those data with import and use SearchObj.open(keyword) function, which provides a off-line support for analysis.
+When close() was called, crawled data would be stored at 'temp/{keyword}.sdb' file. You can rescue those data with import and use SearchObj.open(keyword) function, which provides a off-line support for further analysis.
 
 ### Parsing a cites:
 
