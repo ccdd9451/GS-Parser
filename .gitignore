@@ -1,5 +1,5 @@
-temp/
-cache/
+temp/*
+cache/*
 .DS_Store
 #
 # Byte-compiled / optimized / DLL files
